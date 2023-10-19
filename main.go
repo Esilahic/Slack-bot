@@ -2,26 +2,28 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 )
 
 func main() {
-	txt := []byte("this is a test\n")
-	err := os.WriteFile("test.txt", txt, 0644)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	f, err := os.Create("test2.txt")
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer f.Close()
 
-	d2 := []byte{1, 2, 3}
-	_, err = f.Write(d2)
+	d2 := []byte{115, 111, 109, 101, 10}
+	n2, err := f.Write(d2)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
+	}
+	fmt.Printf("wrote %d bytes\n", n2)
+
+	data, err := os.ReadFile("test2.txt")
+	if err != nil {
+		panic(err)
+	}
+	for _, v := range data {
+		fmt.Printf("wow %v\n", v)
 	}
 }
