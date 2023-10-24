@@ -21,12 +21,12 @@ func main() {
 	usertime := time.Now()
 
 	attachment := slack.Attachment{
-		Pretext: "Date",
-		Text:    "Hello!",
-		Color:   "#36a64f",
+		Pretext: "SCTB!",
+		Text:    "Hello",
+		Color:   "#a85",
 		Fields: []slack.AttachmentField{
 			{
-				Title: "The current time is:",
+				Title: "The current Date and Time are:",
 				Value: usertime.Local().String(),
 			},
 		},
