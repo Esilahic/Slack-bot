@@ -18,15 +18,16 @@ func main() {
 	//slack api token and channel id
 	api := slack.New(token)
 	//slack-go -read docs and create bot
+	usertime := time.Now()
 
 	attachment := slack.Attachment{
 		Pretext: "Date",
-		Text:    "Current time is:",
+		Text:    "Hello!",
 		Color:   "#36a64f",
 		Fields: []slack.AttachmentField{
 			{
-				Title: "Response",
-				Value: time.Now().String(),
+				Title: "The current time is:",
+				Value: usertime.Local().String(),
 			},
 		},
 	}
@@ -36,5 +37,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Message sent at %s", timestamp)
+	fmt.Printf("Message sent at %s\n", timestamp)
 }
