@@ -36,4 +36,6 @@ func main() {
 	}
 
 	fmt.Printf("Message sent at %s\n", timestamp)
+
+	//TODO: add eventlistener for user commands in slack client
 }
