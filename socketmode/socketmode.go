@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/slack-go/slack"
@@ -11,23 +14,51 @@ import (
 	"github.com/slack-go/slack/socketmode"
 )
 
+func HandleAppMentionEventToBot(event *slackevents.AppMentionEvent, client *slack.Client) error {
+
+	user, err := client.GetUserInfo(event.User)
+	if err != nil {
+		return err
+	}
+
+	text := strings.ToLower(event.Text)
+
+	attachment := slack.Attachment{}
+
+	if strings.Contains(text, "hello") || strings.Contains(text, "hi") {
+		attachment.Text = fmt.Sprintf("Hello %s", user.Name)
+		attachment.Color = "#4af030"
+	} else if strings.Contains(text, "weather") {
+		attachment.Text = fmt.Sprintf("Weather is sunny today. %s", user.Name)
+		attachment.Color = "#4af030"
+	} else {
+		attachment.Text = fmt.Sprintf("I am good. How are you %s?", user.Name)
+		attachment.Color = "#4af030"
+	}
+	_, _, err = client.PostMessage(event.Channel, slack.MsgOptionAttachments(attachment))
+	if err != nil {
+		return fmt.Errorf("failed to post message: %w", err)
+	}
+	return nil
+}
+
 func HandleEventMessage(event slackevents.EventsAPIEvent, client *slack.Client) error {
-    switch event.Type {
- 
-    case slackevents.CallbackEvent:
- 
-        innerEvent := event.InnerEvent
- 
-        switch evnt := innerEvent.Data.(type) {
-            err := HandleAppMentionEventToBot(evnt, client)
-            if err != nil {
-                return err
-            }
-        }
-    default:
-        return errors.New("unsupported event type")
-    }
-    return nil
+	switch event.Type {
+	case slackevents.CallbackEvent:
+		innerEvent := event.InnerEvent
+		switch evnt := innerEvent.Data.(type) {
+		case *slackevents.AppMentionEvent:
+			err := HandleAppMentionEventToBot(evnt, client)
+			if err != nil {
+				return err
+			}
+		default:
+			return errors.New("unsupported event type")
+		}
+	default:
+		return errors.New("unsupported event type")
+	}
+	return nil
 }
 
 func main() {
@@ -36,7 +67,7 @@ func main() {
 	token := os.Getenv("SLACK_API_TOKEN")
 	websocket := os.Getenv("SLACK_APP_TOKEN")
 
-	client := slack.New(token, slack.OptionAppLevelToken(websocket))
+	client := slack.New(token, slack.OptionDebug(true), slack.OptionAppLevelToken(websocket))
 
 	socketClient := socketmode.New(
 		client,
@@ -67,9 +98,9 @@ func main() {
 
 					socketClient.Ack(*event.Request)
 					err := HandleEventMessage(eventsAPI, client)
-                    if err != nil {
-                        log.Fatal(err)
-                    }
+					if err != nil {
+						log.Fatal(err)
+					}
 				}
 			}
 		}
